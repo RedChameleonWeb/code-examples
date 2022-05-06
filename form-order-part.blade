@@ -1,0 +1,36 @@
+<div id="modalOrderPart" class="modal @if($show === true) is-visible @endif">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <svg class="close-modal" width="22" height="22"><use xlink:href="#closeR-icon"></use></svg>
+            <div class="modal-body">
+                @if(session()->has('success'))
+                    <div class="bgB text-center">
+                        <svg class="top-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 16L14.5 20.5L23.5 11.5M16 31C20.1421 31 23.8921 29.3211 26.6066 26.6066C29.3211 23.8921 31 20.1421 31 16C31 11.8579 29.3211 8.1079 26.6066 5.39339C23.8921 2.67893 20.1421 1 16 1C11.8579 1 8.1079 2.67893 5.39339 5.39339C2.67893 8.1079 1 11.8579 1 16C1 20.1421 2.67893 23.8921 5.39339 26.6066C8.1079 29.3211 11.8579 31 16 31Z" stroke="#E53934" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                        <div class="modal-title">{{ getTranslate('order_accepted') }}</div>
+                        <p>{{ getTranslate('will_contact_your') }}</p>
+                    </div>
+                    <button class="btn btn-outline close-modal-js" type="button">{{ getTranslate('ok') }}</button>
+                @else
+                    <div class="header-title">{{ getTranslate('order_parts') }}</div>
+                    <p>{{ getTranslate('manager_contact') }}</p>
+
+                    <form wire:submit.prevent="submit">
+                        <div class="bgB">
+                            <div class="form-group">
+                                <label>{{ getTranslate('your_name') }}</label>
+                                <input class="form-control @error('name') is-invalid @enderror" id="name" name="name" wire:model.defer="name" type="text" oninput="this.value = this.value.replace(/[0-9]/g, '');">
+                                @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="form-group">
+                                <label>{{ getTranslate('phone') }}</label>
+                                <input class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" wire:model.defer="phone" type="text" data-type="tel">
+                                @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+                        <button class="btn" type="submit">{{ getTranslate('send') }}</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
