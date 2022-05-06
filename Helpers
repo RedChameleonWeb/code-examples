@@ -1,0 +1,105 @@
+<?php
+// Service file for its functions
+
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use App\Models\Translate;
+
+// Getting information (dimensions, and ...) of an image file
+if (!function_exists('getImageData')) {
+    function getImageData($filename, $template = null): array
+    {
+        if (Storage::exists($filename)) {
+            $path = ($template ? "resize/$template/" : '').$filename;
+            $data = ['src' => Storage::url($path)];
+            if (Storage::exists($path) && str_starts_with(mime_content_type(Storage::path($path)), 'image/')) {
+                list($data['width'], $data['height']) = getimagesize(Storage::path($path));
+            } elseif ($template) {
+                list($data['width'], $data['height']) = getimagesize(Storage::path($filename));
+                $filter = config("image.templates.$template");
+                if (is_array($filter) && is_array($filter[1])) {
+                    $targetSizes = $filter[1];
+                    if ($data['width'] > $targetSizes['width']) {
+                        $data['height'] = round($data['height'] * $targetSizes['width'] / $data['width']);
+                        $data['width'] = $targetSizes['width'];
+                    }
+                    if ($data['height'] > $targetSizes['height']) {
+                        $data['width'] = round($data['width'] * $targetSizes['height'] / $data['height']);
+                        $data['height'] = $targetSizes['height'];
+                    }
+                }
+            }
+            return $data;
+        }
+
+        if (str_starts_with($filename, 'data:image/')) {
+            $data = ['src' => $filename];
+            list($data['width'], $data['height']) = getimagesize($filename);
+            return $data;
+        }
+
+        $data = ['src' => '/img/blank.gif'];
+        if ($template) {
+            $filter = config("image.templates.$template");
+            if (is_array($filter) && is_array($filter[1])) {
+                $data = array_merge($data, $filter[1]);
+            }
+        }
+        return $data;
+    }
+}
+
+// Generic image output (complex webp and jpg/png/...)
+if (!function_exists('getImageImg')) {
+    function getImageImg($filename, $template = null, $alt = null, $class = null, $lazy = true): string
+    {
+        $data = getImageData($filename, $template);
+
+        if ($lazy) {
+            $class .= ' lazy';
+        }
+
+        if (str_starts_with($filename, 'data:image/')) {
+            return
+                '<img '.
+                    ($lazy ? 'data-src' : 'src').'="'.$data['src'].'"'.
+                    (isset($data['width']) ? ' width="'.$data['width'].'"' : '').
+                    (isset($data['height']) ? ' height="'.$data['height'].'"' : '').
+                    (isset($class) ? ' class="'.$class.'"' : '').
+                    ' alt="'.($alt ?? '').'"'.
+                    ' loading="'.($lazy ? 'lazy' : 'eager').'"'.
+                '>';
+        }
+
+        return
+            '<picture>'.
+                '<source type="image/webp" srcset="'.$data['src'].'.webp">'.
+                '<img '.
+                    ($lazy ? 'data-src' : 'src').'="'.$data['src'].'"'.
+                    (isset($data['width']) ? ' width="'.$data['width'].'"' : '').
+                    (isset($data['height']) ? ' height="'.$data['height'].'"' : '').
+                    (isset($class) ? ' class="'.$class.'"' : '').
+                    ' alt="'.($alt ?? '').'"'.
+                    ' loading="'.($lazy ? 'lazy' : 'eager').'"'.
+                '>'.
+            '</picture>';
+    }
+}
+
+// Removing spaces and brackets from your phone
+if (!function_exists('shortPhone')) {
+    function shortPhone($phone): string
+    {
+        return preg_replace('/[^0-9\+]/', '', $phone);
+    }
+}
+
+// Getting translation by slug using cache
+if (!function_exists('getTranslate')) {
+    function getTranslate($slug): string
+    {
+        $translate = Cache::remember('trunslate.'.$slug, config('constant.cache_model_time'), function () use($slug) {            
+            return Translate::where('slug', $slug)->first();
+        });
+        return ($translate) ? $translate->title : "";
+    }
+}
