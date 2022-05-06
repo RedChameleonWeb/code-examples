@@ -1,0 +1,56 @@
+{{-- Catalog menu --}}
+@if(count($items) > 0)
+    <div class="header-bottom">
+        <div class="container">
+            <div class="main-menu">
+                <ul>
+                    @foreach($items as $item)
+                        <li>
+                            <a href="{{ LaravelLocalization::localizeUrl($item->url) }}">{{ $item->title }}</a>
+                            @php $subItems = $item->children; @endphp
+                            @if(count($subItems) > 0)
+                                <svg class="arrowC toggle-btn" width="22" height="22"><use xlink:href="#arrowC-icon"></use></svg>
+                                <div class="main-menu-dropdown">
+                                    <div class="submenu">
+                                        @foreach($subItems as $subItem)
+                                            <div class="submenu-item">
+                                                <a href="{{ LaravelLocalization::localizeUrl($subItem->url) }}" class="title">{{ $subItem->title }}</a>
+                                                @php $subSubItems = $subItem->children; @endphp
+                                                @if(count($subSubItems) > 0)
+                                                    <span class="chevron toggle-btn"></span>
+                                                    <nav>
+                                                        @foreach($subSubItems->slice(0, 5) as $subSubItem)
+                                                            <a href="{{ LaravelLocalization::localizeUrl($subSubItem->url) }}">{{ $subSubItem->title }}</a>
+                                                        @endforeach
+                                                        @if(count($subSubItems) > 5)
+                                                            <span class="link-red" onclick="this.nextElementSibling.classList.remove('d-none'); this.remove()">{{ getTranslate('more') }}</span>
+                                                            <div class="d-none">
+                                                                @foreach($subSubItems->slice(5) as $subSubItem)
+                                                                    <a href="{{ LaravelLocalization::localizeUrl($subSubItem->url) }}">{{ $subSubItem->title }}</a>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                    </nav>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </li>
+                        @if($item != $items->last())
+                            <li class="separ"><span></span></li>
+                        @endif
+                    @endforeach
+                </ul>
+            </div>
+            <a href="{{ route('order-part') }}" class="btn">
+                <svg width="20" height="21"><use xlink:href="#chat-icon"></use></svg>
+                {{ getTranslate('parts_on_order') }}
+            </a>
+        </div>
+    </div>
+    <span class="close close-menu">
+        <svg width="30" height="30"><use xlink:href="#closeR-icon"></use></svg>
+    </span>
+@endif
