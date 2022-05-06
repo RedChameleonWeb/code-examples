@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Traits;
+
+use Illuminate\Support\Facades\Storage;
+
+// The trait of converting images to webp
+trait MakesWebp
+{
+    static $allowedMimeTypes = ['image/jpeg', 'image/gif', 'image/png'];
+
+    protected static function bootMakesWebp()
+    {
+        static::saving(function ($model) {
+            
+            //  Preparing an array of images
+            $imagesToConvert = [];
+            foreach ($model::$images as $imageField) {
+                $images = is_array($model->{$imageField}) ? $model->{$imageField} : [$model->{$imageField}];
+                foreach ($images as $image) {
+                    if (Storage::exists($image) && in_array(mime_content_type(Storage::path($image)), self::$allowedMimeTypes) &&
+                        (Storage::exists($image.'.webp') === false || $model->wasChanged($imageField))) {
+                        $imagesToConvert[] = $image;
+                    }
+                }
+            }
+
+            // Sending an array of images to a task that converts images to webp in the background
+            if (!empty($imagesToConvert)) {
+                \App\Jobs\MakeWebp::dispatch($imagesToConvert);
+            }
+        });
+    }
+}
